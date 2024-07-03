@@ -20,14 +20,9 @@ import kotlinx.coroutines.withContext
 class TVControlViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TVControlState())
     val uiState: StateFlow<TVControlState> = _uiState
-    val logText = MutableLiveData("")
 
     private var discoveryManager: DiscoveryManager? = null
     private var currentDevice: ConnectableDevice? = null
-
-    fun addLog(text: String) {
-        logText.value += text + "\n"
-    }
 
     suspend fun startDiscovery(context: Context) = withContext(Dispatchers.IO) {
         DiscoveryManager.init(context)
@@ -35,7 +30,6 @@ class TVControlViewModel : ViewModel() {
         discoveryManager?.start()
         discoveryManager?.addListener(object : DiscoveryManagerListener {
             override fun onDeviceAdded(manager: DiscoveryManager?, device: ConnectableDevice?) {
-                addLog("чето добавляю и проверяю: $device")
                 device?.let {
                     viewModelScope.launch {
                         _uiState.value = _uiState.value.copy(
@@ -103,36 +97,6 @@ class TVControlViewModel : ViewModel() {
 
         })
     }
-
-    fun getCapabilities(): List<String> {
-        return currentDevice?.capabilities ?: listOf()
-    }
-
-/*    fun switchChannelUp() {
-        currentDevice?.getCapability(TVControl::class.java)?.channelUp(object : ResponseListener<Any> {
-            override fun onError(error: ServiceCommandError?) {
-                Log.e("MyLog", error?.message.toString())
-            }
-
-            override fun onSuccess(`object`: Any?) {
-                Log.d("MyLog", "work")
-            }
-
-        })
-    }
-
-    fun switchChannelDown() {
-        currentDevice?.getCapability(TVControl::class.java)?.channelDown(object : ResponseListener<Any> {
-            override fun onError(error: ServiceCommandError?) {
-                Log.e("MyLog", error?.message.toString())
-            }
-
-            override fun onSuccess(`object`: Any?) {
-
-            }
-
-        })
-    }*/
 
     override fun onCleared() {
         super.onCleared()
